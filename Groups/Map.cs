@@ -23,7 +23,14 @@ public static class Map
 		groupMapPlayerIcon = Helper.loadSprite("groupPlayerIcon.png", 64, 64);
 		groupMapPingIcon = Helper.loadSprite("groupMapPingIcon.png", 64, 64);
 
-		UpdateMapPinColor();
+		if (groupMapPlayerIcon != null && groupMapPingIcon != null)
+		{
+			UpdateMapPinColor();
+		}
+		else
+		{
+			Debug.LogError("Failed to load map ping icons - sprites are null");
+		}
 	}
 
 	[HarmonyPatch(typeof(EnemyHud), nameof(EnemyHud.ShowHud))]
@@ -121,29 +128,43 @@ public static class Map
 
 	public static void UpdateMapPinColor()
 	{
-		Color[]? pixels = Helper.loadTexture("groupPlayerIcon.png").GetPixels();
-		for (int i = 0; i < pixels.Length; ++i)
+		if (groupMapPlayerIcon == null || groupMapPingIcon == null)
 		{
-			if (pixels[i].r > 0.5 && pixels[i].b < 0.5 && pixels[i].g < 0.5)
-			{
-				pixels[i] = Groups.friendlyNameColor.Value;
-			}
+			Debug.LogWarning("Cannot update map pin color - sprites not initialized");
+			return;
 		}
-		groupMapPlayerIcon.texture.SetPixels(pixels);
-		groupMapPlayerIcon.texture.Apply();
+		
+		Texture2D playerIconTexture = Helper.loadTexture("groupPlayerIcon.png");
+		if (playerIconTexture != null)
+		{
+			Color[]? pixels = playerIconTexture.GetPixels();
+			for (int i = 0; i < pixels.Length; ++i)
+			{
+				if (pixels[i].r > 0.5 && pixels[i].b < 0.5 && pixels[i].g < 0.5)
+				{
+					pixels[i] = Groups.friendlyNameColor.Value;
+				}
+			}
+			groupMapPlayerIcon.texture.SetPixels(pixels);
+			groupMapPlayerIcon.texture.Apply();
+		}
 
-		pixels = Helper.loadTexture("groupMapPingIcon.png").GetPixels();
-		for (int i = 0; i < pixels.Length; ++i)
+		Texture2D pingIconTexture = Helper.loadTexture("groupMapPingIcon.png");
+		if (pingIconTexture != null)
 		{
-			if (pixels[i].r > 0.5 && pixels[i].b < 0.5 && pixels[i].g < 0.5)
+			Color[]? pixels = pingIconTexture.GetPixels();
+			for (int i = 0; i < pixels.Length; ++i)
 			{
-				pixels[i].b = Groups.friendlyNameColor.Value.b;
-				pixels[i].g = Groups.friendlyNameColor.Value.g;
-				pixels[i].r = Groups.friendlyNameColor.Value.r;
+				if (pixels[i].r > 0.5 && pixels[i].b < 0.5 && pixels[i].g < 0.5)
+				{
+					pixels[i].b = Groups.friendlyNameColor.Value.b;
+					pixels[i].g = Groups.friendlyNameColor.Value.g;
+					pixels[i].r = Groups.friendlyNameColor.Value.r;
+				}
 			}
+			pingIconTexture.SetPixels(pixels);
+			pingIconTexture.Apply();
 		}
-		groupMapPingIcon.texture.SetPixels(pixels);
-		groupMapPingIcon.texture.Apply();
 	}
 
 	[HarmonyPatch(typeof(Minimap), nameof(Minimap.UpdatePlayerPins))]

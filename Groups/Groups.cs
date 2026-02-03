@@ -85,7 +85,15 @@ public class Groups : BaseUnityPlugin
 	public void Awake()
 	{
 		APIManager.Patcher.Patch();
-		LocalizationManager.Localizer.Load();
+		
+		try
+		{
+			LocalizationManager.Localizer.Load();
+		}
+		catch (Exception ex)
+		{
+			Logger.LogWarning($"Failed to load LocalizationManager: {ex}");
+		}
 
 		Assembly? bepinexConfigManager = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == "ConfigurationManager");
 
